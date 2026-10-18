@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.gradle
+gradle
+app
+.aistudio
+.env
+*.jks
+*.keystore
+preview.html

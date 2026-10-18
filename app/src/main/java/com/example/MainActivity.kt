@@ -58,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.AppLanguage
@@ -90,6 +91,31 @@ class MainActivity : ComponentActivity() {
           uiState = uiState,
           viewModel = viewModel
         )
+      }
+    }
+  }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun DapurRantauPreview() {
+  DapurRantauTheme {
+    // Tampilan sederhana untuk preview agar tidak berat saat loading
+    Scaffold(
+      topBar = {
+        @OptIn(ExperimentalMaterial3Api::class)
+        CenterAlignedTopAppBar(
+          title = { Text("Dapur Rantau Preview", fontWeight = FontWeight.Bold) }
+        )
+      }
+    ) { padding ->
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(padding),
+        contentAlignment = Alignment.Center
+      ) {
+        Text("Preview Mode: Aktifkan 'Split' di pojok kanan atas")
       }
     }
   }

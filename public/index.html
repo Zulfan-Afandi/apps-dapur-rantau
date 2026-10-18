@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dapur Rantau - AI Meal Planner for Students & Workers</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍲</text></svg>">
+</head>
+<body>
+
+  <!-- Top Announcement Banner for Google Cloud AI Builder Cup -->
+  <aside class="competition-banner" aria-label="Informasi Kompetisi">
+    <div class="banner-inner">
+      <span class="badge-gcp">Google Cloud Run</span>
+      <span>🏆 <strong>Google Cloud AI Builder Cup 2026</strong> • Sustainability & Social Impact • Team <strong>JajangBakwan</strong></span>
+    </div>
+  </aside>
+
+  <main class="main-container">
+    <!-- Phone Bezel Device Shell -->
+    <div class="phone-frame">
+      <div class="phone-screen">
+        
+        <!-- Dynamic Island -->
+        <div class="island">
+          <div class="island-cam"></div>
+          <div class="island-sensor"></div>
+        </div>
+
+        <!-- System Status Bar -->
+        <div class="status-bar">
+          <span id="statusBarClock">12:30</span>
+          <div class="status-icons">
+            <span>5G</span>
+            <span>📶</span>
+            <span>🔋 98%</span>
+          </div>
+        </div>
+
+        <!-- App Header Bar -->
+        <header class="app-header">
+          <div class="header-left">
+            <span class="mascot-emoji" id="kukiHeader">🍲</span>
+            <div>
+              <h1 class="header-title">Dapur Rantau</h1>
+              <span class="header-sub" id="headerTagline">Menu Hemat & Bergizi</span>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="header-pill" id="btnPreset" onclick="openOnboarding()">
+              <span>📍</span> <span id="currentCityText">Malang</span>
+            </button>
+            <button class="header-pill lang-btn" id="btnLang" onclick="toggleLanguage()">ID</button>
+            <button class="header-icon-btn" onclick="openOnboarding()" title="Pengaturan Preferensi">⚙️</button>
+          </div>
+        </header>
+
+        <!-- Main Scrollable Screen Body -->
+        <div class="screen-body" id="screenBody">
+
+          <!-- TAB 1: MODE TANGGAL TUA (ACTIVE DEFAULT) -->
+          <section id="tabTanggalTua" class="tab-page active">
+            <div class="card hero-card red-theme">
+              <div class="hero-top">
+                <div>
+                  <h2 class="card-title text-red">🚨 Mode Tanggal Tua</h2>
+                  <p class="card-desc">Menu paling hemat untuk sisa uang saku hingga kiriman/gaji tiba!</p>
+                </div>
+                <div class="mascot-bubble" id="tangtuaMascot">🍜</div>
+              </div>
+
+              <!-- Inputs row -->
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label" for="ttMoney">Sisa Uang (IDR)</label>
+                  <input 
+                    type="number" 
+                    id="ttMoney" 
+                    class="form-input bold-input" 
+                    value="25000" 
+                    placeholder="25000"
+                    oninput="handleTangtuaInput()" 
+                  />
+                </div>
+                <div class="form-group flex-07">
+                  <label class="form-label" for="ttDays">Jumlah Hari</label>
+                  <input 
+                    type="number" 
+                    id="ttDays" 
+                    class="form-input bold-input" 
+                    value="3" 
+                    min="1" 
+                    max="31"
+                    oninput="handleTangtuaInput()" 
+                  />
+                </div>
+              </div>
+
+              <!-- Jatah Belanja Pill -->
+              <div class="allowance-banner">
+                <div>
+                  <div class="allowance-sub">Jatah Belanja Maksimal:</div>
+                  <div class="allowance-main" id="ttDailyAllowance">Rp 8.333 / hari</div>
+                </div>
+                <button class="btn btn-red" id="btnTangtuaGenerate" onclick="generateTangtuaMenu()">
+                  <span>✨</span> <span id="btnTangtuaText">Cari Menu</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Student Survival Tips -->
+            <div class="card tips-card">
+              <div class="tips-header">
+                <span>💡</span> <strong>Trik Bertahan Hidup Anak Rantau:</strong>
+              </div>
+              <ul class="tips-list">
+                <li>• Masak nasi & lauk dasar sekaligus (batch cook) untuk kurangi boros gas/listrik.</li>
+                <li>• Belanja sayur di pasar tradisional jam 6 pagi untuk dapat harga termurah.</li>
+                <li>• Andalkan telur, tahu & tempe untuk pemenuhan protein harian yang padat gizi.</li>
+              </ul>
+            </div>
+
+            <!-- Tanggal Tua Recommendations -->
+            <div class="section-heading">
+              <span>Menu Penyelamat Hemat & Bergizi</span>
+              <span class="badge-tag green">3 Rekomendasi</span>
+            </div>
+
+            <div id="tangtuaMealsContainer">
+              <!-- Dynamically populated meals -->
+            </div>
+
+            <!-- Nutrition Disclaimer -->
+            <div class="card disclaimer-card">
+              <span>ℹ️</span>
+              <p>Perkiraan gizi dan harga dihitung berdasarkan rata-rata pasar lokal Malang. Bukan nasihat medis.</p>
+            </div>
+          </section>
+
+          <!-- TAB 2: RENCANA 7 HARI (WEEKLY PLAN) -->
+          <section id="tabWeeklyPlan" class="tab-page">
+            <div class="card hero-card yellow-theme">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div class="allowance-sub">TARGET ANGGARAN MINGGUAN</div>
+                  <div class="hero-price" id="weeklyTotalBudget">Rp 175.000</div>
+                  <div class="allowance-sub" style="color:#78350F;">Rp 25.000 / hari • 7 Hari Menu Bergizi</div>
+                </div>
+                <button class="btn btn-yellow" onclick="generateWeeklyPlan()">
+                  <span>⚡</span> Buat Menu AI
+                </button>
+              </div>
+            </div>
+
+            <!-- Days Selector Carousel -->
+            <div class="days-carousel" id="daysCarousel">
+              <button class="day-chip active" onclick="selectDay(0, this)">Senin</button>
+              <button class="day-chip" onclick="selectDay(1, this)">Selasa</button>
+              <button class="day-chip" onclick="selectDay(2, this)">Rabu</button>
+              <button class="day-chip" onclick="selectDay(3, this)">Kamis</button>
+              <button class="day-chip" onclick="selectDay(4, this)">Jumat</button>
+              <button class="day-chip" onclick="selectDay(5, this)">Sabtu</button>
+              <button class="day-chip" onclick="selectDay(6, this)">Minggu</button>
+            </div>
+
+            <div class="section-heading">
+              <span id="currentDayTitle">Menu Hari Senin</span>
+              <label class="toggle-label">
+                <input type="checkbox" id="batchCookFilter" onchange="toggleBatchCookFilter()" />
+                <span>Hanya Masak Sekali (Batch)</span>
+              </label>
+            </div>
+
+            <div id="weeklyMealsContainer">
+              <!-- Dynamically populated meals -->
+            </div>
+          </section>
+
+          <!-- TAB 3: DAFTAR BELANJA PASAR -->
+          <section id="tabShopping" class="tab-page">
+            <div class="card hero-card green-theme">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h2 class="card-title text-green">Daftar Belanja Pasar</h2>
+                  <p class="card-desc" id="shoppingCheckedCount">3 dari 6 bahan terbeli</p>
+                </div>
+                <div style="font-size: 32px;">🥬</div>
+              </div>
+              <div class="allowance-banner" style="background:#DCFCE7; margin-top:12px;">
+                <div>
+                  <div class="allowance-sub" style="color:#166534;">Estimasi Total:</div>
+                  <div class="allowance-main" style="color:#15803D;" id="shoppingTotalPrice">Rp 34.000</div>
+                </div>
+                <button class="btn btn-green" onclick="openAddShoppingModal()">+ Bahan</button>
+              </div>
+            </div>
+
+            <!-- Store Category Filter Chips -->
+            <div class="chips-row">
+              <button class="filter-chip active" onclick="filterShopping(null, this)">Semua</button>
+              <button class="filter-chip" onclick="filterShopping('FARMERS_MARKET', this)">🥬 Pasar</button>
+              <button class="filter-chip" onclick="filterShopping('GROCERY_CONVENIENCE', this)">🏪 Warung</button>
+              <button class="filter-chip" onclick="filterShopping('MINIMARKET', this)">🛍️ Minimarket</button>
+            </div>
+
+            <div id="shoppingListContainer" class="shopping-items-list">
+              <!-- Dynamically populated shopping items -->
+            </div>
+          </section>
+
+          <!-- TAB 4: RADAR PASAR & LOKASI -->
+          <section id="tabMap" class="tab-page">
+            <div class="card hero-card blue-theme">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <h2 class="card-title text-blue">🗺️ Radar Pasar & Warung</h2>
+                  <p class="card-desc">Lokasi terkurasi di sekitar kampus & kosan Malang</p>
+                </div>
+                <span style="font-size: 28px;">📡</span>
+              </div>
+
+              <!-- Animated Canvas Radar -->
+              <div class="radar-box">
+                <canvas id="radarCanvas" width="300" height="200"></canvas>
+                <div class="radar-overlay-badge">Area: Lowokwaru / Dinoyo</div>
+              </div>
+
+              <div class="radar-legend">
+                <span class="legend-item"><span class="dot red"></span> Pasar Tradisional</span>
+                <span class="legend-item"><span class="dot green"></span> Warung Sayur</span>
+                <span class="legend-item"><span class="dot blue"></span> Supermarket</span>
+              </div>
+            </div>
+
+            <div class="section-heading">
+              <span>Daftar Toko & Pasar Terdekat</span>
+              <a href="https://www.google.com/maps/search/pasar+tradisional+di+Malang" target="_blank" rel="noopener" class="btn-text">Buka Maps ↗</a>
+            </div>
+
+            <div id="storesListContainer">
+              <!-- Dynamically populated store cards -->
+            </div>
+          </section>
+
+          <!-- TAB 5: SCAN KULKAS (AI VISION) -->
+          <section id="tabFridge" class="tab-page">
+            <div class="card hero-card purple-theme text-center">
+              <div style="font-size: 44px; margin-bottom: 8px;">📸</div>
+              <h2 class="card-title" style="color:#6D28D9;">Scan Isi Kulkas / Dapur</h2>
+              <p class="card-desc" style="max-width: 280px; margin: 4px auto 14px;">
+                Ambil foto bahan makanan apa saja yang tersisa di kosan. Multimodal Gemini AI akan merekomendasikan resep instan.
+              </p>
+              
+              <input type="file" id="fridgeFileInput" accept="image/*" style="display:none;" onchange="handleFridgeImage(event)" />
+              <button class="btn btn-purple" onclick="document.getElementById('fridgeFileInput').click()">
+                <span>📷</span> Pilih / Ambil Foto Bahan
+              </button>
+            </div>
+
+            <div id="fridgeResultCard" style="display: none;" class="card">
+              <div class="section-heading" style="margin-top: 0;">
+                <span>Hasil Pengenalan Gemini AI</span>
+                <span class="badge-tag green">Berhasil</span>
+              </div>
+              <div id="detectedIngredientsList" class="tags-cluster"></div>
+              
+              <div class="section-heading" style="margin-top: 14px;">
+                <span>Rekomendasi Resep Daur Ulang</span>
+              </div>
+              <div id="fridgeRecipeResult"></div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+          <button class="nav-btn active" onclick="switchNav('tabTanggalTua', this)">
+            <span class="nav-emoji">🚨</span>
+            <span class="nav-text">Tgl Tua</span>
+          </button>
+          <button class="nav-btn" onclick="switchNav('tabWeeklyPlan', this)">
+            <span class="nav-emoji">📅</span>
+            <span class="nav-text">Rencana</span>
+          </button>
+          <button class="nav-btn" onclick="switchNav('tabShopping', this)">
+            <span class="nav-emoji">🛒</span>
+            <span class="nav-text">Belanja</span>
+          </button>
+          <button class="nav-btn" onclick="switchNav('tabMap', this)">
+            <span class="nav-emoji">📍</span>
+            <span class="nav-text">Pasar</span>
+          </button>
+          <button class="nav-btn" onclick="switchNav('tabFridge', this)">
+            <span class="nav-emoji">📷</span>
+            <span class="nav-text">Kulkas</span>
+          </button>
+        </nav>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: RECIPE DETAIL -->
+  <div class="modal-overlay" id="recipeModal" onclick="closeModalOnBackdrop(event, 'recipeModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalRecipeName" class="modal-title">Nama Resep</h3>
+        <button class="modal-close" onclick="closeRecipeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalRecipeBody">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ONBOARDING / PREFERENCES -->
+  <div class="modal-overlay" id="onboardingModal" onclick="closeModalOnBackdrop(event, 'onboardingModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Preferensi & Budget Kosan</h3>
+        <button class="modal-close" onclick="closeOnboardingModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="obBudget">Target Budget Harian (IDR)</label>
+          <input type="number" id="obBudget" class="form-input bold-input" value="25000" />
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="form-label" for="obKitchen">Alat Masak Tersedia</label>
+          <select id="obKitchen" class="form-input">
+            <option value="Hanya Rice Cooker">Hanya Rice Cooker</option>
+            <option value="Kompor 1 Tungku" selected>Kompor 1 Tungku</option>
+            <option value="Dapur Lengkap">Dapur Lengkap</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="form-label" for="obCity">Kota Domisili</label>
+          <input type="text" id="obCity" class="form-input" value="Malang" />
+        </div>
+        <button class="btn btn-red" style="width: 100%; margin-top: 16px;" onclick="savePreferences()">
+          Simpan Preferensi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

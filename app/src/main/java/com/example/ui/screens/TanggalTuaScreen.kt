@@ -24,8 +24,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.ui.theme.DapurRantauTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,6 +128,22 @@ fun TanggalTuaScreen(
               onValueChange = { moneyInput = it },
               label = { Text(if (language == AppLanguage.ID) "Sisa Uang (${localeContext.currency})" else "Remaining (${localeContext.currency})") },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+              singleLine = true,
+              textStyle = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1F2937)
+              ),
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color(0xFF1F2937),
+                unfocusedTextColor = Color(0xFF1F2937),
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                cursorColor = Color(0xFFD32F2F),
+                focusedBorderColor = Color(0xFFD32F2F),
+                unfocusedBorderColor = Color(0xFFD1D5DB),
+                focusedLabelColor = Color(0xFFD32F2F),
+                unfocusedLabelColor = Color(0xFF6B7280)
+              ),
               modifier = Modifier.weight(1f).testTag("tangtua_money_input")
             )
             OutlinedTextField(
@@ -132,6 +151,22 @@ fun TanggalTuaScreen(
               onValueChange = { daysInput = it.filter { c -> c.isDigit() } },
               label = { Text(if (language == AppLanguage.ID) "Jumlah Hari" else "Days Left") },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+              singleLine = true,
+              textStyle = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1F2937)
+              ),
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color(0xFF1F2937),
+                unfocusedTextColor = Color(0xFF1F2937),
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                cursorColor = Color(0xFFD32F2F),
+                focusedBorderColor = Color(0xFFD32F2F),
+                unfocusedBorderColor = Color(0xFFD1D5DB),
+                focusedLabelColor = Color(0xFFD32F2F),
+                unfocusedLabelColor = Color(0xFF6B7280)
+              ),
               modifier = Modifier.weight(0.7f).testTag("tangtua_days_input")
             )
           }
@@ -249,3 +284,19 @@ fun TanggalTuaScreen(
     }
   }
 }
+
+@Preview(name = "Mode Tanggal Tua", showBackground = true, showSystemUi = true)
+@Composable
+fun TanggalTuaScreenPreview() {
+  DapurRantauTheme {
+    TanggalTuaScreen(
+      tanggalTuaPlan = null,
+      localeContext = LocaleContext(),
+      language = AppLanguage.ID,
+      isGenerating = false,
+      onGenerate = { _, _ -> },
+      onSelectMeal = {}
+    )
+  }
+}
+

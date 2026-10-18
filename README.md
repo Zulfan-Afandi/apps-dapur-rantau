@@ -31,13 +31,40 @@ People living far from home often don't know what to cook, how to cook it, or wh
 <add 3-4 images from a /screenshots folder>
 
 ## Run locally
-<fill in after checking how the project starts, for example: npm install, then npm run dev, with GEMINI_API_KEY in a .env file>
+
+### 1. Web Prototype & API Server (for Cloud Run):
+```bash
+npm install
+npm start
+```
+Buka browser di `http://localhost:8080`.
+
+### 2. Android App (Jetpack Compose):
+Buka proyek ini di Android Studio, lalu jalankan di emulator atau perangkat fisik.
+
+## Deploy to Google Cloud Run (Free Tier / $0)
+
+Deploy prototipe langsung ke Cloud Run dengan Google Cloud CLI:
+```bash
+gcloud run deploy dapur-rantau \
+  --source . \
+  --region asia-southeast2 \
+  --allow-unauthenticated \
+  --set-env-vars GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+```
+
+Atau via **Google Cloud Console** (Browser):
+1. Buka [Google Cloud Run Console](https://console.cloud.google.com/run).
+2. Klik **"Create Service"** atau **"Deploy Container"**.
+3. Pilih **"Continuously deploy from a repository"** lalu sambungkan repositori GitHub ini.
+4. Pilih Build type: **Dockerfile**.
+5. Centang **"Allow unauthenticated invocations"** agar juri bisa langsung mengakses.
+6. Klik **"Create"**. URL publik `https://dapur-rantau-xxxx.a.run.app` akan otomatis aktif!
 
 ## Notes and limitations
-- Prices are estimates and can be edited by the user.
+- Prices are estimates based on traditional markets in Malang, Indonesia, and can be edited by the user.
 - Nutrition guidance is general, not medical advice.
-- Store data in the demo is curated sample data for Malang, Indonesia.
-- Free-tier Gemini API usage is rate-limited.
+- Cloud Run Free Tier covers up to 2 million requests/month without any charges.
 
 ## Team
 JajangBakwan (2 people)

@@ -58,6 +58,8 @@ import com.example.ui.components.MasTempeAvatar
 import com.example.ui.components.MbakCabeAvatar
 import com.example.ui.components.NutritionDisclaimerCard
 import com.example.ui.theme.AppStrings
+import com.example.ui.theme.DapurRantauTheme
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun WeeklyPlanScreen(
@@ -530,3 +532,27 @@ fun MealCard(
     }
   }
 }
+
+@Preview(name = "Weekly Plan Screen", showBackground = true, showSystemUi = true)
+@Composable
+fun WeeklyPlanScreenPreview() {
+  DapurRantauTheme {
+    WeeklyPlanScreen(
+      weeklyPlan = emptyList(),
+      selectedDayIndex = 0,
+      dailyBudget = 25000.0,
+      localeContext = LocaleContext(),
+      language = AppLanguage.ID,
+      mascotState = MascotState.IDLE,
+      isGenerating = false,
+      errorMessage = null,
+      isBatchCookFilterActive = false,
+      onSelectDay = {},
+      onSelectMeal = {},
+      onGeneratePlan = {},
+      onToggleBatchCookFilter = {},
+      onOpenOnboarding = {}
+    )
+  }
+}
+

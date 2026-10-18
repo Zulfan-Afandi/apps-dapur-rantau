@@ -36,7 +36,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.ui.theme.DapurRantauTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -76,6 +79,7 @@ fun OnboardingScreen(
 
   var step by remember { mutableIntStateOf(1) }
   var budget by remember { mutableDoubleStateOf(currentPreferences.dailyBudget) }
+  var budgetInput by remember { mutableStateOf(if (currentPreferences.dailyBudget % 1.0 == 0.0) currentPreferences.dailyBudget.toLong().toString() else currentPreferences.dailyBudget.toString()) }
   var setup by remember { mutableStateOf(currentPreferences.kitchenSetup) }
   var mealsCount by remember { mutableIntStateOf(currentPreferences.mealsPerDay) }
   var cuisineOverride by remember { mutableStateOf(currentPreferences.cuisineOverride) }
@@ -195,6 +199,7 @@ fun OnboardingScreen(
                       .clickable {
                         onApplyPreset(p)
                         budget = p.defaultBudget
+                        budgetInput = if (p.defaultBudget % 1.0 == 0.0) p.defaultBudget.toLong().toString() else p.defaultBudget.toString()
                       }
                       .padding(horizontal = 10.dp, vertical = 6.dp)
                   ) {
@@ -235,12 +240,29 @@ fun OnboardingScreen(
 
                   // Allow typing custom amount
                   OutlinedTextField(
-                    value = budget.toString(),
+                    value = budgetInput,
                     onValueChange = { input ->
+                      budgetInput = input
                       input.toDoubleOrNull()?.let { budget = it }
                     },
                     label = { Text(if (language == AppLanguage.ID) "Ketik Nominal (${localeContext.currency})" else "Custom Amount (${localeContext.currency})") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                      fontWeight = FontWeight.Bold,
+                      color = Color(0xFF1F2937)
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                      focusedTextColor = Color(0xFF1F2937),
+                      unfocusedTextColor = Color(0xFF1F2937),
+                      focusedContainerColor = Color.White,
+                      unfocusedContainerColor = Color.White,
+                      cursorColor = Color(0xFFD32F2F),
+                      focusedBorderColor = Color(0xFFD32F2F),
+                      unfocusedBorderColor = Color(0xFFD1D5DB),
+                      focusedLabelColor = Color(0xFFD32F2F),
+                      unfocusedLabelColor = Color(0xFF6B7280)
+                    ),
                     modifier = Modifier.fillMaxWidth().testTag("custom_budget_input")
                   )
 
@@ -264,7 +286,10 @@ fun OnboardingScreen(
                         modifier = Modifier
                           .clip(RoundedCornerShape(12.dp))
                           .background(if (isSelected) Color(0xFFD32F2F) else Color(0xFFF7F1E5))
-                          .clickable { budget = presetVal }
+                          .clickable {
+                            budget = presetVal
+                            budgetInput = if (presetVal % 1.0 == 0.0) presetVal.toLong().toString() else presetVal.toString()
+                          }
                           .padding(horizontal = 10.dp, vertical = 8.dp)
                       ) {
                         Text(
@@ -496,3 +521,19 @@ fun OnboardingScreen(
     }
   }
 }
+
+@Preview(name = "Onboarding Screen", showBackground = true, showSystemUi = true)
+@Composable
+fun OnboardingScreenPreview() {
+  DapurRantauTheme {
+    OnboardingScreen(
+      currentPreferences = com.example.data.model.UserPreferences(),
+      localeContext = LocaleContext(),
+      language = AppLanguage.ID,
+      onComplete = {},
+      onApplyPreset = {},
+      onClose = {}
+    )
+  }
+}
+
