@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Market Map</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F3F4F6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 340px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #E5E7EB;
+    }
+    iframe {
+      width: 100%;
+      height: 340px;
+      border: 0;
+      display: block;
+    }
+    /* CSS-only pulsing radar overlay */
+    .radar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.25s ease-out;
+    }
+    .radar-overlay.active {
+      opacity: 1;
+    }
+    .radar-core {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #D32F2F;
+      box-shadow: 0 0 10px rgba(211, 47, 47, 0.6);
+    }
+    .radar-ring {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid #D32F2F;
+      background: rgba(211, 47, 47, 0.12);
+      will-change: transform, opacity;
+      transform: scale(0.2);
+      opacity: 0;
+    }
+    .radar-overlay.active .radar-ring.ring-1 {
+      animation: pulseRadar 1.5s ease-out forwards;
+    }
+    .radar-overlay.active .radar-ring.ring-2 {
+      animation: pulseRadar 1.5s ease-out 0.25s forwards;
+    }
+    .radar-overlay.active .radar-ring.ring-3 {
+      animation: pulseRadar 1.5s ease-out 0.5s forwards;
+    }
+
+    @keyframes pulseRadar {
+      0% {
+        transform: scale(0.15);
+        opacity: 0.95;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: scale(3.6);
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .radar-ring {
+        animation: none !important;
+      }
+    }
+
+    /* Error Boundary UI */
+    .error-boundary {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      border-radius: 20px;
+      padding: 16px;
+      z-index: 30;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .error-boundary.visible {
+      display: flex;
+    }
+    .error-title {
+      font-weight: 700;
+      color: #991B1B;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .error-text {
+      color: #B91C1C;
+      font-size: 11px;
+      margin-bottom: 12px;
+      max-width: 90%;
+      word-break: break-word;
+    }
+    .retry-btn {
+      background: #DC2626;
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .error-debug-box {
+      display: none;
+      position: absolute;
+      bottom: 6px;
+      left: 8px;
+      right: 8px;
+      background: rgba(220, 38, 38, 0.92);
+      color: #FFFFFF;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+  <div class="map-container" id="container">
+    <iframe
+      id="map-iframe"
+      src="https://maps.google.com/maps?q=pasar+tradisional&ll=-7.9797,112.6304&z=14&output=embed"
+      width="100%"
+      height="340"
+      style="border:0;"
+      loading="lazy"
+      allowfullscreen>
+    </iframe>
+
+    <!-- CSS-only pulsing radar overlay (transform & opacity only, pointer-events: none) -->
+    <div id="radar-overlay" class="radar-overlay">
+      <div class="radar-core"></div>
+      <div class="radar-ring ring-1"></div>
+      <div class="radar-ring ring-2"></div>
+      <div class="radar-ring ring-3"></div>
+    </div>
+
+    <!-- Error Boundary Display -->
+    <div id="error-boundary" class="error-boundary">
+      <div class="error-title">Gagal memuat peta / Map load notice</div>
+      <div class="error-text" id="error-boundary-msg">Terjadi kendala saat memuat peta Google Maps.</div>
+      <button class="retry-btn" onclick="retryMapLoad()">Coba Lagi / Retry</button>
+    </div>
+
+    <!-- Debug error banner -->
+    <div id="error-debug" class="error-debug-box"></div>
+  </div>
+
+  <script>
+    var currentQuery = 'pasar tradisional';
+    var currentLat = -7.9797;
+    var currentLng = 112.6304;
+    var currentCity = '';
+    var scanTimer = null;
+
+    function buildMapUrl(query, lat, lng, city) {
+      var encodedQuery = encodeURIComponent(query || 'pasar tradisional');
+      if (city && city.trim().length > 0) {
+        var combinedQuery = encodeURIComponent((query || 'pasar tradisional') + ' in ' + city.trim());
+        return 'https://maps.google.com/maps?q=' + combinedQuery + '&z=14&output=embed';
+      }
+      var validLat = (typeof lat === 'number' && isFinite(lat)) ? lat : -7.9797;
+      var validLng = (typeof lng === 'number' && isFinite(lng)) ? lng : 112.6304;
+      return 'https://maps.google.com/maps?q=' + encodedQuery + '&ll=' + validLat + ',' + validLng + '&z=14&output=embed';
+    }
+
+    function updateMap(query, lat, lng, city) {
+      try {
+        currentQuery = query || currentQuery;
+        if (typeof lat === 'number' && isFinite(lat)) currentLat = lat;
+        if (typeof lng === 'number' && isFinite(lng)) currentLng = lng;
+        currentCity = city || '';
+
+        var iframe = document.getElementById('map-iframe');
+        if (iframe) {
+          var url = buildMapUrl(currentQuery, currentLat, currentLng, currentCity);
+          iframe.src = url;
+        }
+        hideError();
+      } catch (err) {
+        showError(err.message || 'Error updating map iframe');
+      }
+    }
+
+    function triggerRadarScan() {
+      try {
+        var overlay = document.getElementById('radar-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('active');
+        void overlay.offsetWidth; // force DOM reflow
+        overlay.classList.add('active');
+
+        if (scanTimer) clearTimeout(scanTimer);
+        scanTimer = setTimeout(function() {
+          overlay.classList.remove('active');
+        }, 1500);
+      } catch (err) {
+        console.warn('Radar trigger failed:', err);
+      }
+    }
+
+    function showError(msg) {
+      var boundary = document.getElementById('error-boundary');
+      var boundaryMsg = document.getElementById('error-boundary-msg');
+      var debug = document.getElementById('error-debug');
+      if (boundary && boundaryMsg) {
+        boundaryMsg.textContent = msg || 'Gagal memuat peta';
+        boundary.classList.add('visible');
+      }
+      if (debug) {
+        debug.textContent = msg;
+        debug.style.display = 'block';
+      }
+    }
+
+    function hideError() {
+      var boundary = document.getElementById('error-boundary');
+      var debug = document.getElementById('error-debug');
+      if (boundary) boundary.classList.remove('visible');
+      if (debug) debug.style.display = 'none';
+    }
+
+    function retryMapLoad() {
+      hideError();
+      updateMap(currentQuery, currentLat, currentLng, currentCity);
+    }
+
+    window.onerror = function(message, source, lineno, colno, error) {
+      showError(message || 'Error loading map');
+      return true;
+    };
+  </script>
+</body>
+</html>

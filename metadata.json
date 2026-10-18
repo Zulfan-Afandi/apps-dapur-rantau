@@ -1,0 +1,6 @@
+{
+  "name": "Dapur Rantau",
+  "description": "Menu hemat, bergizi, dan panduan belanja pasar untuk anak rantau Indonesia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
